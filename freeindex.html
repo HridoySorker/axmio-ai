@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#08080c;--bg2:#0f0f16;--bg3:#16161f;--bg4:#1c1c28;
+  --border:#252535;--border2:#303048;--border3:#3d3d58;
+  --text:#ddddf5;--text2:#8888aa;--text3:#4a4a6a;
+  --ax:#a78bfa;--ax2:#c4b5fd;--ax3:#7c3aed;
+  --axbg:rgba(167,139,250,0.08);--axbg2:rgba(167,139,250,0.18);
+  --teal:#2dd4bf;--tealbg:rgba(45,212,191,0.08);
+  --red:#f87171;--redbg:rgba(248,113,113,0.08);
+  --amber:#fbbf24;--amberbg:rgba(251,191,36,0.1);
+  --green:#4ade80;--greenbg:rgba(74,222,128,0.08);
+  --font:'Outfit',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--r2:14px;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex;flex-direction:column;font-size:14px;line-height:1.5;}
+#app{display:flex;flex:1;overflow:hidden;height:100%;}
+#sidebar{width:236px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sb-head{padding:14px 14px 10px;}
+.logo-row{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--ax3),var(--ax));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-mark svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-0.4px;}
+.logo-text span{color:var(--ax);}
+.new-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px;background:var(--axbg);border:1px solid var(--border2);border-radius:var(--r);color:var(--ax);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+.new-btn:hover{background:var(--axbg2);border-color:var(--ax);}
+.new-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;}
+.sb-body{flex:1;overflow-y:auto;padding:6px 8px;}
+.sb-body::-webkit-scrollbar{width:3px;}
+.sb-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.sec-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:8px 6px 5px;}
+.conv{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:all .12s;margin-bottom:1px;}
+.conv:hover{background:var(--bg3);}
+.conv.on{background:var(--bg4);border:1px solid var(--border2);}
+.conv-nm{font-size:12px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conv.on .conv-nm{color:var(--text);}
+.conv-x{opacity:0;font-size:11px;color:var(--text3);padding:2px 5px;border-radius:4px;cursor:pointer;flex-shrink:0;}
+.conv:hover .conv-x{opacity:1;}
+.conv-x:hover{background:var(--redbg);color:var(--red);}
+.sb-foot{padding:8px;border-top:1px solid var(--border);display:flex;gap:5px;}
+.ft-btn{flex:1;padding:8px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:10px;font-family:var(--font);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s;line-height:1;}
+.ft-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.ft-btn:hover{background:var(--bg4);color:var(--text2);border-color:var(--border2);}
+.ft-btn.on{background:var(--axbg);color:var(--ax);border-color:var(--ax);}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.panel.active{display:flex;}
+.chat-head{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.chat-title-el{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tok-badge{font-size:11px;font-family:var(--mono);color:var(--text3);white-space:nowrap;}
+.model-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+.model-pill:hover{border-color:var(--ax);color:var(--ax);}
+.mpill-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.msgs{flex:1;overflow-y:auto;padding:18px 18px 8px;display:flex;flex-direction:column;gap:3px;}
+.msgs::-webkit-scrollbar{width:3px;}
+.msgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:14px;}
+.empty-logo{width:56px;height:56px;background:var(--axbg);border:1px solid var(--border2);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.empty-logo svg{width:28px;height:28px;fill:none;stroke:var(--ax);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.empty-h{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.empty-h span{color:var(--ax);}
+.empty-p{font-size:13px;color:var(--text2);max-width:320px;line-height:1.65;}
+.free-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--greenbg);border:1px solid var(--green);border-radius:20px;font-size:12px;color:var(--green);font-weight:500;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:420px;}
+.chip{padding:6px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s;}
+.chip:hover{background:var(--bg4);border-color:var(--border2);color:var(--text);}
+.mg{display:flex;flex-direction:column;margin-bottom:2px;}
+.mg.user{align-items:flex-end;}
+.mg.assistant{align-items:flex-start;}
+.bubble{max-width:80%;padding:10px 14px;line-height:1.65;font-size:13.5px;}
+.mg.user .bubble{background:linear-gradient(135deg,var(--ax3),var(--ax));color:#fff;border-radius:14px 14px 3px 14px;}
+.mg.assistant .bubble{background:var(--bg3);color:var(--text);border-radius:14px 14px 14px 3px;border:1px solid var(--border);}
+.bub-meta{font-size:10px;color:var(--text3);padding:3px 4px;}
+.cursor{display:inline-block;width:2px;height:13px;background:var(--ax);border-radius:1px;animation:bl .6s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+.mc h1,.mc h2,.mc h3{font-weight:600;margin:10px 0 4px;}
+.mc h1{font-size:17px;}.mc h2{font-size:15px;}.mc h3{font-size:14px;}
+.mc p{margin:3px 0;}.mc ul,.mc ol{padding-left:18px;margin:4px 0;}.mc li{margin:2px 0;}
+.mc strong{font-weight:600;}.mc em{font-style:italic;opacity:.85;}
+.mc a{color:var(--ax);text-decoration:none;}.mc a:hover{text-decoration:underline;}
+.mc blockquote{border-left:2px solid var(--ax);padding-left:10px;margin:6px 0;color:var(--text2);font-style:italic;}
+.mc code:not(.nc){background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:11.5px;color:var(--ax2);}
+.mc table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}
+.mc th{background:var(--bg4);padding:6px 10px;text-align:left;font-weight:500;border:1px solid var(--border);}
+.mc td{padding:5px 10px;border:1px solid var(--border);}
+.cb{background:var(--bg);border:1px solid var(--border2);border-radius:10px;margin:8px 0;overflow:hidden;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.cb-lang{font-size:11px;font-family:var(--mono);color:var(--text3);}
+.cb-copy{font-size:11px;color:var(--ax);background:none;border:none;cursor:pointer;font-family:var(--font);padding:2px 6px;border-radius:4px;transition:all .1s;}
+.cb-copy:hover{background:var(--axbg);}
+.cb-body{padding:13px 14px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.75;color:var(--text);}
+.kw{color:#c084fc;}.fn{color:#67e8f9;}.str{color:#86efac;}.cm{color:#4a4a6a;font-style:italic;}.num{color:#fbbf24;}.tp{color:#a78bfa;}
+.input-wrap{padding:10px 18px 14px;flex-shrink:0;}
+.setup-banner{margin:10px 18px 0;padding:11px 14px;background:var(--amberbg);border:1px solid var(--amber);border-radius:10px;font-size:12px;color:var(--text);line-height:1.7;display:none;}
+.setup-banner.show{display:block;}
+.setup-banner b{color:var(--amber);}
+.setup-banner a{color:var(--ax);}
+.input-box{display:flex;align-items:flex-end;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:10px 10px 10px 16px;transition:border-color .15s;}
+.input-box:focus-within{border-color:var(--ax);}
+#inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:14px;resize:none;max-height:130px;min-height:22px;line-height:1.55;}
+#inp::placeholder{color:var(--text3);}
+.send{width:36px;height:36px;background:linear-gradient(135deg,var(--ax3),var(--ax));border:none;border-radius:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+.send:hover{transform:scale(1.06);opacity:.9;}
+.send:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.send svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.inp-foot{display:flex;align-items:center;gap:10px;padding:5px 4px 0;font-size:11px;color:var(--text3);}
+.inp-foot b{font-weight:500;}
+.ptag{padding:2px 8px;background:var(--axbg);border:1px solid var(--border2);border-radius:20px;font-size:10px;color:var(--ax);}
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.back{padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:var(--font);font-size:12px;cursor:pointer;transition:all .12s;}
+.back:hover{background:var(--bg4);color:var(--text);}
+.panel-title{font-size:16px;font-weight:700;letter-spacing:-.3px;}
+.cfg-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;max-width:620px;width:100%;}
+.cfg-body::-webkit-scrollbar{width:3px;}
+.cfg-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.cfg-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
+.cfg-hd{padding:11px 16px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:8px;}
+.free-tag{padding:2px 8px;background:var(--greenbg);border:1px solid var(--green);border-radius:20px;font-size:10px;color:var(--green);text-transform:none;letter-spacing:0;font-weight:500;}
+.info-box{margin:12px 16px;padding:10px 14px;background:var(--axbg);border:1px solid var(--border2);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.7;}
+.info-box a{color:var(--ax);text-decoration:none;}
+.info-box a:hover{text-decoration:underline;}
+.info-box b{color:var(--text);font-weight:500;}
+.info-box code{color:var(--ax);font-family:var(--mono);font-size:11px;}
+.key-row{padding:10px 16px 14px;display:flex;gap:8px;align-items:center;}
+.txt-inp{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s;}
+.txt-inp:focus{border-color:var(--ax);}
+.save-btn{padding:8px 14px;background:var(--ax);border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
+.save-btn:hover{opacity:.85;}
+.mdl-grid{padding:8px;display:flex;flex-direction:column;gap:2px;}
+.mdl{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .12s;}
+.mdl:hover{background:var(--bg3);}
+.mdl.on{background:var(--axbg);}
+.mdl-radio{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border3);transition:all .12s;flex-shrink:0;}
+.mdl.on .mdl-radio{background:var(--ax);border-color:var(--ax);}
+.mdl-info{flex:1;}
+.mdl-nm{font-size:13px;font-weight:500;}
+.mdl-ds{font-size:11px;color:var(--text3);}
+.mdl-tag{font-size:10px;padding:2px 7px;border-radius:20px;flex-shrink:0;font-weight:500;}
+.tag-free{background:var(--greenbg);color:var(--green);border:1px solid var(--green);}
+.tag-fast{background:var(--tealbg);color:var(--teal);border:1px solid var(--teal);}
+.param-r{padding:11px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.param-l{flex:1;}.param-n{font-size:13px;font-weight:500;}.param-h{font-size:11px;color:var(--text3);margin-top:1px;}
+.param-c{display:flex;align-items:center;gap:10px;}
+.sl{-webkit-appearance:none;width:130px;height:3px;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ax);cursor:pointer;}
+.pv{font-size:12px;font-family:var(--mono);color:var(--ax);min-width:36px;text-align:right;}
+.ollama-row{padding:10px 16px;display:flex;gap:8px;align-items:center;}
+.ollama-chk{padding:0 16px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+.pg{padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.pc{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 8px;cursor:pointer;transition:all .12s;text-align:center;}
+.pc:hover{border-color:var(--border2);}
+.pc.on{border-color:var(--ax);background:var(--axbg);}
+.pc-em{font-size:20px;margin-bottom:4px;}
+.pc-nm{font-size:12px;font-weight:600;}
+.pc-ds{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.prompt-ed{padding:12px 16px 16px;}
+.prompt-ta{width:100%;min-height:100px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s;}
+.prompt-ta:focus{border-color:var(--ax);}
+.pe-foot{display:flex;align-items:center;gap:9px;margin-top:9px;}
+.apply-btn{padding:8px 18px;background:var(--ax);border:none;border-radius:9px;color:#fff;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .12s;}
+.apply-btn:hover{opacity:.85;}
+.clear-btn{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text2);font-family:var(--font);font-size:13px;cursor:pointer;transition:all .12s;}
+.clear-btn:hover{background:var(--bg4);}
+.ps-msg{font-size:11px;color:var(--teal);}
+.toast{position:fixed;bottom:16px;right:16px;padding:11px 15px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;font-size:13px;max-width:320px;z-index:999;transform:translateY(16px);opacity:0;transition:all .22s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-t{font-weight:600;margin-bottom:2px;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div class="sb-head">
+      <div class="logo-row">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="logo-text">Axiom<span> AI</span></div>
+      </div>
+      <button class="new-btn" onclick="newChat()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New conversation
+      </button>
+    </div>
+    <div class="sb-body" id="conv-list"></div>
+    <div class="sb-foot">
+      <button class="ft-btn on" id="btn-chat" onclick="showPanel('chat')">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat
+      </button>
+      <button class="ft-btn" id="btn-model" onclick="showPanel('model')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Models
+      </button>
+      <button class="ft-btn" id="btn-persona" onclick="showPanel('persona')">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Persona
+      </button>
+      <button class="ft-btn" onclick="exportChat()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export
+      </button>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- CHAT -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-head">
+        <div class="chat-title-el" id="chat-title">New conversation</div>
+        <div class="tok-badge" id="tok-badge"></div>
+        <div class="model-pill" onclick="showPanel('model')">
+          <div class="mpill-dot"></div>
+          <span id="pill-txt">Llama 3.3 70B</span>
+        </div>
+      </div>
+      <div class="setup-banner" id="setup-banner">
+        <b>⚡ One-time setup required:</b> Go to <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> → sign up free (no credit card) → Create Key → paste it in <b>Models</b>. All listed models are free forever.
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="input-wrap">
+        <div class="input-box">
+          <textarea id="inp" placeholder="Message Axiom AI…" rows="1" onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+          <button class="send" id="send-btn" onclick="send()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="inp-foot">
+          <span>Via: <b id="fp-lbl" style="color:var(--green)">OpenRouter</b></span>
+          <span>·</span><span id="fm-lbl" style="color:var(--text2)"></span>
+          <span id="ptag-wrap"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODEL -->
+    <div class="panel" id="panel-model">
+      <div class="panel-head">
+        <button class="back" onclick="showPanel('chat')">← Back</button>
+        <div class="panel-title">Models & API Key</div>
+      </div>
+      <div class="cfg-body">
+        <div class="cfg-card">
+          <div class="cfg-hd">OpenRouter API Key <span class="free-tag">Free · No credit card</span></div>
+          <div class="info-box">
+            <b>3 steps to get your free key:</b><br>
+            1. Visit <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> and create a free account<br>
+            2. Click <b>Create Key</b> — copy it (looks like <code>sk-or-v1-...</code>)<br>
+            3. Paste below and Save — all <code>:free</code> models are permanently free
+          </div>
+          <div class="key-row">
+            <input class="txt-inp" type="password" id="or-key" placeholder="sk-or-v1-...">
+            <button class="save-btn" onclick="saveKey()">Save</button>
+          </div>
+        </div>
+
+        <div class="cfg-card">
+          <div class="cfg-hd">Free Models <span class="free-tag">OpenRouter free tier</span></div>
+          <div class="mdl-grid" id="mdl-grid"></div>
+        </div>
+
+        <div class="cfg-card">
+          <div class="cfg-hd">Ollama Local <span style="font-size:10px;color:var(--text3);text-transform:none;letter-spacing:0;font-weight:400">· runs on your machine only</span></div>
+          <div class="info-box">Start Ollama with <code>ollama serve</code> on your machine. <b>Does not work on Vercel</b> — use OpenRouter for cloud deployments.</div>
+          <div class="ollama-row">
+            <input class="txt-inp" id="ollama-ep" value="http://localhost:11434" placeholder="http://localhost:11434">
+            <button class="save-btn" onclick="saveOllama()">Save</button>
+          </div>
+          <div class="ollama-chk">
+            <input type="checkbox" id="use-ollama" onchange="toggleOllama(this.checked)" style="accent-color:var(--ax);width:14px;height:14px;">
+            <label for="use-ollama" style="cursor:pointer;">Use Ollama instead of OpenRouter</label>
+          </div>
+        </div>
+
+        <div class="cfg-card">
+          <div class="cfg-hd">Parameters</div>
+          <div class="param-r">
+            <div class="param-l"><div class="param-n">Temperature</div><div class="param-h">0 = focused · 1 = creative</div></div>
+            <div class="param-c"><input type="range" class="sl" id="sl-temp" min="0" max="100" value="70" oninput="upParam('temp',this.value/100)"><span class="pv" id="pv-temp">0.70</span></div>
+          </div>
+          <div class="param-r">
+            <div class="param-l"><div class="param-n">Max Tokens</div><div class="param-h">Maximum response length</div></div>
+            <div class="param-c"><input type="range" class="sl" id="sl-tok" min="256" max="8192" value="2048" step="256" oninput="upParam('maxTok',parseInt(this.value))"><span class="pv" id="pv-tok">2048</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERSONA -->
+    <div class="panel" id="panel-persona">
+      <div class="panel-head">
+        <button class="back" onclick="showPanel('chat')">← Back</button>
+        <div class="panel-title">System Prompt & Persona</div>
+      </div>
+      <div class="cfg-body">
+        <div class="cfg-card">
+          <div class="cfg-hd">Quick Personas</div>
+          <div class="pg" id="pg"></div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-hd">Custom System Prompt</div>
+          <div class="prompt-ed">
+            <textarea class="prompt-ta" id="spi" placeholder="You are a helpful assistant…"></textarea>
+            <div class="pe-foot">
+              <button class="apply-btn" onclick="applyPersona()">Apply</button>
+              <button class="clear-btn" onclick="clearPersona()">Clear</button>
+              <span class="ps-msg" id="ps-msg"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-t" id="toast-t"></div><div id="toast-m"></div></div>
+
+<script>
+const FREE_MODELS=[
+  {id:'meta-llama/llama-3.3-70b-instruct:free',     nm:'Llama 3.3 70B',      ds:'Meta · best overall free model',      fast:false},
+  {id:'meta-llama/llama-3.1-8b-instruct:free',      nm:'Llama 3.1 8B',       ds:'Meta · fastest responses',            fast:true},
+  {id:'deepseek/deepseek-r1:free',                   nm:'DeepSeek R1',        ds:'DeepSeek · strong reasoning & math',  fast:false},
+  {id:'deepseek/deepseek-chat-v3-0324:free',         nm:'DeepSeek V3',        ds:'DeepSeek · fast & highly capable',    fast:true},
+  {id:'mistralai/mistral-7b-instruct:free',          nm:'Mistral 7B',         ds:'Mistral · great for code & logic',    fast:false},
+  {id:'google/gemma-3-27b-it:free',                  nm:'Gemma 3 27B',        ds:'Google · smart & multilingual',       fast:false},
+  {id:'google/gemma-3-12b-it:free',                  nm:'Gemma 3 12B',        ds:'Google · balanced speed & quality',   fast:true},
+  {id:'qwen/qwen-2.5-72b-instruct:free',             nm:'Qwen 2.5 72B',       ds:'Alibaba · excellent at coding',       fast:false},
+  {id:'nvidia/llama-3.1-nemotron-70b-instruct:free', nm:'Nemotron 70B',       ds:'NVIDIA · high-quality output',        fast:false},
+  {id:'microsoft/phi-3-mini-128k-instruct:free',     nm:'Phi-3 Mini 128K',    ds:'Microsoft · long context window',     fast:true},
+];
+
+const PERSONAS=[
+  {em:'💻',nm:'Code Expert',  ds:'Clean code & best practices', p:'You are an expert software engineer. Write clean, well-commented code. Always explain your approach, suggest best practices, and flag potential issues.'},
+  {em:'✍️',nm:'Writer',       ds:'Vivid creative writing',      p:'You are a skilled creative writer. Craft compelling narratives with vivid language and unique voice and style.'},
+  {em:'🔬',nm:'Researcher',   ds:'Evidence-based analysis',     p:'You are a rigorous researcher. Provide evidence-based analysis, cite your reasoning clearly, and always acknowledge uncertainty.'},
+  {em:'🧮',nm:'Math Tutor',   ds:'Step-by-step solutions',      p:'You are a patient mathematics tutor. Break every problem down step-by-step and build intuition, not just answers.'},
+  {em:'🤝',nm:'Socratic',     ds:'Question-led discovery',      p:'You are a Socratic teacher. Guide users to insights through thoughtful questions rather than giving direct answers.'},
+  {em:'🌐',nm:'Default',      ds:'Helpful & balanced',          p:''},
+];
+
+const S={convs:[],active:null,model:FREE_MODELS[0].id,orKey:'',ollamaEp:'http://localhost:11434',useOllama:false,sysPrompt:'',params:{temp:0.7,maxTok:2048},streaming:false};
+const STORE='axiom_or_v2';
+function persist(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+function hydrate(){try{const d=localStorage.getItem(STORE);if(d)Object.assign(S,JSON.parse(d));}catch(e){}}
+
+function newChat(){const id='c'+Date.now();S.convs.unshift({id,nm:'New conversation',msgs:[],ts:Date.now()});S.active=id;persist();renderSidebar();renderMsgs();showPanel('chat');}
+function selConv(id){S.active=id;persist();renderSidebar();renderMsgs();}
+function delConv(id,e){e.stopPropagation();S.convs=S.convs.filter(c=>c.id!==id);if(S.active===id)S.active=S.convs.length?S.convs[0].id:null;persist();renderSidebar();renderMsgs();}
+function getConv(){return S.convs.find(c=>c.id===S.active);}
+
+function renderSidebar(){
+  const el=document.getElementById('conv-list');
+  if(!S.convs.length){el.innerHTML='<div style="padding:10px 6px;font-size:12px;color:var(--text3)">No conversations yet</div>';return;}
+  el.innerHTML='<div class="sec-lbl">Recent</div>'+S.convs.map(c=>`<div class="conv${c.id===S.active?' on':''}" onclick="selConv('${c.id}')"><span class="conv-nm">${esc(c.nm)}</span><span class="conv-x" onclick="delConv('${c.id}',event)">✕</span></div>`).join('');
+}
+
+function renderMsgs(){
+  const c=getConv();const el=document.getElementById('msgs');
+  document.getElementById('chat-title').textContent=c?c.nm:'New conversation';
+  if(!c||!c.msgs.length){
+    el.innerHTML=`<div class="empty"><div class="empty-logo"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ax)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="empty-h">Axiom<span> AI</span></div><div class="free-badge">✦ 100% Free Open-Source Models</div><div class="empty-p">Powered by OpenRouter's free tier — Llama, Mistral, DeepSeek, Gemma & more. No credit card ever.</div><div class="chips"><div class="chip" onclick="quick(this)">Explain quantum computing</div><div class="chip" onclick="quick(this)">Write a Python web scraper</div><div class="chip" onclick="quick(this)">Debug my JavaScript</div><div class="chip" onclick="quick(this)">Compare REST vs GraphQL</div><div class="chip" onclick="quick(this)">Summarize a research paper</div></div></div>`;
+    updTok();return;
+  }
+  el.innerHTML=c.msgs.map(m=>{const t=new Date(m.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const body=m.role==='assistant'?md(m.content):esc(m.content);return`<div class="mg ${m.role}"><div class="bubble"><div class="mc">${body}</div></div><div class="bub-meta">${t}${m.tok?` · <span style="color:var(--ax);font-family:var(--mono)">${m.tok}</span> tok`:''}</div></div>`;}).join('');
+  el.scrollTop=el.scrollHeight;updTok();
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function md(raw){
+  if(!raw)return'';
+  let o=raw.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>`<div class="cb"><div class="cb-head"><span class="cb-lang">${lang||'code'}</span><button class="cb-copy" onclick="cpCode(this)">Copy</button></div><div class="cb-body">${hi(esc(code.trim()),lang)}</div></div>`);
+  o=o.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  o=o.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  o=o.replace(/\*([^*\n]+)\*/g,'<em>$1</em>');
+  o=o.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  o=o.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  o=o.replace(/^---$/gm,'<hr>');
+  o=o.replace(/^[\-\*] (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>\n?)+/g,'<ul>$&</ul>');
+  o=o.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  o=o.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  o=o.replace(/\n\n+/g,'<br><br>').replace(/\n/g,'<br>');
+  return o;
+}
+
+function hi(code,lang){
+  const l=(lang||'').toLowerCase();
+  if(['js','javascript','ts','typescript'].includes(l))return code.replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|from|async|await|new|typeof|try|catch|throw|switch|case|break|default|of|in)\b/g,'<span class="kw">$1</span>').replace(/\b([A-Z]\w*)\b/g,'<span class="tp">$1</span>').replace(/\b([a-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>').replace(/(["'`])((?:\\.|(?!\1)[^\\])*)\1/g,'<span class="str">$1$2$1</span>').replace(/\/\/.*/g,'<span class="cm">$&</span>').replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  if(['py','python'].includes(l))return code.replace(/\b(def|class|import|from|return|if|elif|else|for|while|in|not|and|or|pass|raise|try|except|finally|with|as|lambda|yield|True|False|None)\b/g,'<span class="kw">$1</span>').replace(/\b([A-Z]\w*)\b/g,'<span class="tp">$1</span>').replace(/\b([a-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>').replace(/("""[\s\S]*?"""|'''[\s\S]*?'''|"[^"]*"|'[^']*')/g,'<span class="str">$&</span>').replace(/#.*/g,'<span class="cm">$&</span>').replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  if(['rust','rs'].includes(l))return code.replace(/\b(fn|let|mut|pub|use|mod|struct|enum|impl|trait|for|while|if|else|return|match|async|await|const|static|self|Self)\b/g,'<span class="kw">$1</span>').replace(/\b([A-Z]\w*)\b/g,'<span class="tp">$1</span>').replace(/\b([a-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>').replace(/"[^"]*"/g,'<span class="str">$&</span>').replace(/\/\/.*/g,'<span class="cm">$&</span>').replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  if(['bash','sh','shell'].includes(l))return code.replace(/\b(if|then|else|fi|for|while|do|done|echo|export|cd|ls|grep|curl|docker|git|npm|pip|python|node)\b/g,'<span class="kw">$1</span>').replace(/(["'])[^"']*\1/g,'<span class="str">$&</span>').replace(/#.*/g,'<span class="cm">$&</span>').replace(/\$\w+/g,'<span class="tp">$&</span>');
+  return code;
+}
+
+function cpCode(btn){const t=btn.closest('.cb').querySelector('.cb-body').innerText;navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+
+async function send(){
+  if(S.streaming)return;
+  const inp=document.getElementById('inp');const txt=inp.value.trim();if(!txt)return;
+  if(!S.active)newChat();const conv=getConv();if(!conv)return;
+  inp.value='';inp.style.height='auto';
+  conv.msgs.push({role:'user',content:txt,ts:Date.now()});
+  if(conv.msgs.length===1){conv.nm=txt.slice(0,44)+(txt.length>44?'…':'');document.getElementById('chat-title').textContent=conv.nm;renderSidebar();}
+  appendUser(esc(txt));
+  if(S.useOllama)await streamOllama(conv);else await streamOR(conv);
+}
+
+function appendUser(html){
+  const el=document.getElementById('msgs');const emp=el.querySelector('.empty');if(emp)emp.remove();
+  const d=document.createElement('div');d.className='mg user';
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  d.innerHTML=`<div class="bubble"><div class="mc">${html}</div></div><div class="bub-meta">${t}</div>`;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+
+function mkWrap(){
+  const el=document.getElementById('msgs');
+  const w=document.createElement('div');w.className='mg assistant';
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  w.innerHTML=`<div class="bubble"><div class="mc"><span class="cursor"></span></div></div><div class="bub-meta">${t}</div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;return w;
+}
+
+async function streamOR(conv){
+  if(!S.orKey){toast('API key needed','Go to Models → paste your free OpenRouter key','warn');document.getElementById('setup-banner').classList.add('show');conv.msgs.pop();return;}
+  S.streaming=true;document.getElementById('send-btn').disabled=true;
+  const wrap=mkWrap();const mc=wrap.querySelector('.mc');const area=document.getElementById('msgs');let full='';
+  const msgs=conv.msgs.map(m=>({role:m.role,content:m.content}));
+  const payload={model:S.model,messages:S.sysPrompt?[{role:'system',content:S.sysPrompt},...msgs]:msgs,stream:true,max_tokens:S.params.maxTok,temperature:S.params.temp};
+  try{
+    const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.orKey,'HTTP-Referer':'https://axiom-ai.vercel.app','X-Title':'Axiom AI'},body:JSON.stringify(payload)});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`Error ${r.status}`);}
+    const reader=r.body.getReader();const dec=new TextDecoder();let totalTok=0;
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      for(const line of dec.decode(value,{stream:true}).split('\n')){
+        if(!line.startsWith('data: '))continue;const raw=line.slice(6).trim();if(raw==='[DONE]')continue;
+        try{const ev=JSON.parse(raw);const delta=ev.choices?.[0]?.delta?.content;if(delta){full+=delta;mc.innerHTML=md(full)+'<span class="cursor"></span>';area.scrollTop=area.scrollHeight;}if(ev.usage?.total_tokens)totalTok=ev.usage.total_tokens;}catch(e){}
+      }
+    }
+    mc.innerHTML=md(full);
+    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    wrap.querySelector('.bub-meta').innerHTML=t+(totalTok?` · <span style="color:var(--ax);font-family:var(--mono)">${totalTok}</span> tok`:'');
+    conv.msgs.push({role:'assistant',content:full,ts:Date.now(),tok:totalTok||undefined});updTok();
+  }catch(err){wrap.remove();toast('Error',friendly(err.message),'error');conv.msgs.pop();}
+  S.streaming=false;document.getElementById('send-btn').disabled=false;persist();
+}
+
+async function streamOllama(conv){
+  S.streaming=true;document.getElementById('send-btn').disabled=true;
+  const wrap=mkWrap();const mc=wrap.querySelector('.mc');const area=document.getElementById('msgs');let full='';
+  const msgs=conv.msgs.map(m=>({role:m.role,content:m.content}));
+  if(S.sysPrompt)msgs.unshift({role:'system',content:S.sysPrompt});
+  const modelId=S.model.split('/').pop().replace(':free','');
+  try{
+    const r=await fetch(`${S.ollamaEp}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelId,messages:msgs,stream:true})});
+    if(!r.ok)throw new Error(`Ollama error ${r.status}`);
+    const reader=r.body.getReader();const dec=new TextDecoder();
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      dec.decode(value,{stream:true}).split('\n').filter(Boolean).forEach(line=>{try{const ev=JSON.parse(line);if(ev.message?.content){full+=ev.message.content;mc.innerHTML=md(full)+'<span class="cursor"></span>';area.scrollTop=area.scrollHeight;}}catch(e){}});
+    }
+    mc.innerHTML=md(full);conv.msgs.push({role:'assistant',content:full,ts:Date.now()});
+  }catch(err){wrap.remove();toast('Ollama error',`Cannot reach ${S.ollamaEp} — is Ollama running?`,'error');conv.msgs.pop();}
+  S.streaming=false;document.getElementById('send-btn').disabled=false;persist();
+}
+
+function friendly(msg){
+  if(!msg)return'Something went wrong.';
+  if(msg.includes('401')||msg.includes('key'))return'Invalid OpenRouter key. Check it in the Models panel.';
+  if(msg.includes('429')||msg.includes('rate'))return'Rate limit hit. Wait a moment and try again.';
+  if(msg.includes('402'))return'This model requires credits on OpenRouter. Switch to a :free model.';
+  if(msg.includes('503')||msg.includes('unavailable'))return'Model temporarily unavailable. Try a different free model.';
+  if(msg.includes('network')||msg.includes('Failed'))return'Network error. Check your connection.';
+  return msg;
+}
+
+function renderMdlGrid(){document.getElementById('mdl-grid').innerHTML=FREE_MODELS.map(m=>`<div class="mdl${m.id===S.model?' on':''}" onclick="selMdl('${m.id}')"><div class="mdl-radio"></div><div class="mdl-info"><div class="mdl-nm">${m.nm}</div><div class="mdl-ds">${m.ds}</div></div><span class="mdl-tag ${m.fast?'tag-fast':'tag-free'}">${m.fast?'fast':'free'}</span></div>`).join('');}
+function selMdl(id){S.model=id;renderMdlGrid();updateFooter();persist();}
+function upParam(k,v){S.params[k]=v;if(k==='temp')document.getElementById('pv-temp').textContent=parseFloat(v).toFixed(2);if(k==='maxTok')document.getElementById('pv-tok').textContent=v;persist();}
+function saveKey(){const k=document.getElementById('or-key').value.trim();if(k){S.orKey=k;persist();document.getElementById('setup-banner').classList.remove('show');toast('Saved','OpenRouter key saved — ready to chat!','ok');}}
+function saveOllama(){S.ollamaEp=document.getElementById('ollama-ep').value;persist();toast('Saved','Ollama endpoint updated','ok');}
+function toggleOllama(v){S.useOllama=v;updateFooter();persist();}
+function updateFooter(){
+  const m=FREE_MODELS.find(x=>x.id===S.model);
+  document.getElementById('fp-lbl').textContent=S.useOllama?'Ollama':'OpenRouter';
+  document.getElementById('fp-lbl').style.color=S.useOllama?'var(--teal)':'var(--green)';
+  document.getElementById('fm-lbl').textContent=m?m.nm:S.model;
+  document.getElementById('pill-txt').textContent=m?m.nm:S.model;
+}
+
+function renderPg(){document.getElementById('pg').innerHTML=PERSONAS.map((p,i)=>`<div class="pc${S.sysPrompt===p.p?' on':''}" onclick="pickP(${i})"><div class="pc-em">${p.em}</div><div class="pc-nm">${p.nm}</div><div class="pc-ds">${p.ds}</div></div>`).join('');}
+function pickP(i){const p=PERSONAS[i];document.getElementById('spi').value=p.p;S.sysPrompt=p.p;renderPg();persist();document.getElementById('ps-msg').textContent=p.nm+' applied';updPtag();}
+function applyPersona(){S.sysPrompt=document.getElementById('spi').value;renderPg();persist();document.getElementById('ps-msg').textContent='Applied ✓';updPtag();}
+function clearPersona(){S.sysPrompt='';document.getElementById('spi').value='';renderPg();persist();document.getElementById('ps-msg').textContent='Cleared';updPtag();}
+function updPtag(){const w=document.getElementById('ptag-wrap');if(S.sysPrompt){const p=PERSONAS.find(x=>x.p===S.sysPrompt);w.innerHTML=`<span class="ptag">🎭 ${p?p.nm:'Custom'}</span>`;}else w.innerHTML='';}
+
+function exportChat(){
+  const c=getConv();if(!c||!c.msgs.length){toast('Nothing to export','Start a conversation first','error');return;}
+  let txt=`AXIOM AI — ${c.nm}\n${'─'.repeat(60)}\nExported: ${new Date().toLocaleString()}\n\n`;
+  c.msgs.forEach(m=>{txt+=`[${m.role==='user'?'You':'Axiom AI'}]  ${new Date(m.ts).toLocaleString()}\n${m.content}\n\n`;});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=`axiom-${Date.now()}.txt`;a.click();
+  toast('Exported','Saved as .txt','ok');
+}
+
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.ft-btn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('btn-'+id);if(btn)btn.classList.add('on');
+  if(id==='model'){renderMdlGrid();if(S.orKey)document.getElementById('or-key').value=S.orKey;document.getElementById('ollama-ep').value=S.ollamaEp;document.getElementById('use-ollama').checked=S.useOllama;}
+  if(id==='persona'){renderPg();document.getElementById('spi').value=S.sysPrompt;}
+}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
+function quick(el){document.getElementById('inp').value=el.textContent;send();}
+function updTok(){const c=getConv();const tot=c?c.msgs.reduce((s,m)=>s+(m.tok||0),0):0;document.getElementById('tok-badge').textContent=tot?tot.toLocaleString()+' tokens':'';}
+function toast(title,msg,type){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-t').textContent=title;document.getElementById('toast-m').textContent=msg;
+  const col=type==='error'?'var(--red)':type==='ok'?'var(--teal)':type==='warn'?'var(--amber)':'var(--border2)';
+  t.style.borderColor=col;document.getElementById('toast-t').style.color=col;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4200);
+}
+
+function init(){
+  hydrate();
+  if(!S.convs.length)newChat();else{renderSidebar();renderMsgs();}
+  updateFooter();updPtag();showPanel('chat');
+  document.getElementById('btn-chat').classList.add('on');
+  document.getElementById('sl-temp').value=S.params.temp*100;document.getElementById('pv-temp').textContent=S.params.temp.toFixed(2);
+  document.getElementById('sl-tok').value=S.params.maxTok;document.getElementById('pv-tok').textContent=S.params.maxTok;
+  if(S.orKey)document.getElementById('or-key').value=S.orKey;
+  if(!S.orKey)document.getElementById('setup-banner').classList.add('show');
+}
+init();
+</script>
+</body>
+</html>
