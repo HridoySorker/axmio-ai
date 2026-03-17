@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#08080c;--bg2:#0f0f16;--bg3:#16161f;--bg4:#1c1c28;--bg5:#232333;
+  --border:#252535;--border2:#303048;--border3:#3d3d58;
+  --text:#ddddf5;--text2:#8888aa;--text3:#4a4a6a;--text4:#2a2a45;
+  --ax:#a78bfa;--ax2:#c4b5fd;--ax3:#7c3aed;--axbg:rgba(167,139,250,0.08);--axbg2:rgba(167,139,250,0.15);
+  --teal:#2dd4bf;--tealbg:rgba(45,212,191,0.08);
+  --red:#f87171;--redbg:rgba(248,113,113,0.08);
+  --amber:#fbbf24;--amberbg:rgba(251,191,36,0.08);
+  --green:#4ade80;--greenbg:rgba(74,222,128,0.08);
+  --font:'Outfit',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--r2:14px;--r3:20px;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex;flex-direction:column;font-size:14px;line-height:1.5;}
+
+#app{display:flex;flex:1;overflow:hidden;height:100%;}
+#sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;}
+
+.sb-head{padding:14px 14px 10px;}
+.logo-row{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--ax3),var(--ax));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-mark svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-0.4px;color:var(--text);}
+.logo-text span{color:var(--ax);}
+.new-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px;background:var(--axbg);border:1px solid var(--border2);border-radius:var(--r);color:var(--ax);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+.new-btn:hover{background:var(--axbg2);border-color:var(--ax);}
+.new-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;}
+.sb-section{flex:1;overflow-y:auto;padding:6px 8px;}
+.sb-section::-webkit-scrollbar{width:3px;}
+.sb-section::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.sec-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:8px 6px 5px;}
+.conv{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:all .12s;margin-bottom:1px;}
+.conv:hover{background:var(--bg3);}
+.conv.on{background:var(--bg4);border:1px solid var(--border2);}
+.conv-ic{font-size:13px;flex-shrink:0;opacity:.7;}
+.conv-nm{font-size:12px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conv.on .conv-nm{color:var(--text);}
+.conv-x{opacity:0;font-size:11px;color:var(--text3);padding:2px 5px;border-radius:4px;cursor:pointer;flex-shrink:0;}
+.conv:hover .conv-x{opacity:1;}
+.conv-x:hover{background:var(--redbg);color:var(--red);}
+.sb-foot{padding:8px;border-top:1px solid var(--border);display:flex;gap:5px;}
+.ft-btn{flex:1;padding:8px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:11px;font-family:var(--font);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s;line-height:1;}
+.ft-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.ft-btn:hover{background:var(--bg4);color:var(--text2);border-color:var(--border2);}
+.ft-btn.on{background:var(--axbg);color:var(--ax);border-color:var(--ax);}
+
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.panel.active{display:flex;}
+
+.chat-head{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.chat-head-title{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.model-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap;}
+.model-pill:hover{border-color:var(--ax);color:var(--ax);}
+.model-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+.tok-badge{font-size:11px;font-family:var(--mono);color:var(--text3);white-space:nowrap;}
+.msgs{flex:1;overflow-y:auto;padding:18px 18px 8px;display:flex;flex-direction:column;gap:3px;}
+.msgs::-webkit-scrollbar{width:3px;}
+.msgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:14px;}
+.empty-logo{width:54px;height:54px;background:var(--axbg);border:1px solid var(--border2);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.empty-logo svg{width:26px;height:26px;fill:none;stroke:var(--ax);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.empty-h{font-size:20px;font-weight:700;letter-spacing:-.4px;}
+.empty-h span{color:var(--ax);}
+.empty-p{font-size:13px;color:var(--text2);max-width:300px;line-height:1.65;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:380px;}
+.chip{padding:6px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s;}
+.chip:hover{background:var(--bg4);border-color:var(--border2);color:var(--text);}
+.mg{display:flex;flex-direction:column;margin-bottom:2px;}
+.mg.user{align-items:flex-end;}
+.mg.assistant{align-items:flex-start;}
+.bubble{max-width:78%;padding:10px 14px;line-height:1.65;font-size:13.5px;position:relative;}
+.mg.user .bubble{background:linear-gradient(135deg,var(--ax3),var(--ax));color:#fff;border-radius:14px 14px 3px 14px;}
+.mg.assistant .bubble{background:var(--bg3);color:var(--text);border-radius:14px 14px 14px 3px;border:1px solid var(--border);}
+.bub-meta{font-size:10px;color:var(--text3);padding:3px 4px;display:flex;align-items:center;gap:5px;}
+.cursor{display:inline-block;width:2px;height:13px;background:var(--ax);border-radius:1px;animation:bl .6s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+.mc h1,.mc h2,.mc h3{font-weight:600;margin:10px 0 4px;line-height:1.3;}
+.mc h1{font-size:17px;}.mc h2{font-size:15px;}.mc h3{font-size:14px;}
+.mc p{margin:3px 0;}
+.mc ul,.mc ol{padding-left:18px;margin:4px 0;}
+.mc li{margin:2px 0;}
+.mc strong{font-weight:600;}
+.mc em{font-style:italic;opacity:.8;}
+.mc a{color:var(--ax);text-decoration:none;}
+.mc a:hover{text-decoration:underline;}
+.mc blockquote{border-left:2px solid var(--ax);padding-left:10px;margin:6px 0;color:var(--text2);font-style:italic;}
+.mc hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
+.mc table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}
+.mc th{background:var(--bg4);padding:6px 10px;text-align:left;font-weight:500;border:1px solid var(--border);}
+.mc td{padding:5px 10px;border:1px solid var(--border);}
+.mc code:not(.block-code){background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:11.5px;color:var(--ax2);}
+.cb{background:var(--bg);border:1px solid var(--border2);border-radius:10px;margin:8px 0;overflow:hidden;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.cb-lang{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:lowercase;}
+.cb-copy{font-size:11px;color:var(--ax);background:none;border:none;cursor:pointer;font-family:var(--font);padding:2px 6px;border-radius:4px;transition:all .1s;}
+.cb-copy:hover{background:var(--axbg);}
+.cb-body{padding:13px 14px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.75;color:var(--text);}
+.cb-body::-webkit-scrollbar{height:3px;}
+.cb-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.kw{color:#c084fc;}.fn{color:#67e8f9;}.str{color:#86efac;}.cm{color:#4a4a6a;font-style:italic;}.num{color:#fbbf24;}.tp{color:#a78bfa;}
+
+.input-wrap{padding:10px 18px 14px;flex-shrink:0;}
+.input-box{display:flex;align-items:flex-end;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:10px 10px 10px 16px;transition:border-color .15s;}
+.input-box:focus-within{border-color:var(--ax);}
+#inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:14px;resize:none;max-height:130px;min-height:22px;line-height:1.55;}
+#inp::placeholder{color:var(--text3);}
+.send{width:36px;height:36px;background:linear-gradient(135deg,var(--ax3),var(--ax));border:none;border-radius:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+.send:hover{transform:scale(1.06);opacity:.9;}
+.send:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.send svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.inp-foot{display:flex;align-items:center;gap:10px;padding:5px 4px 0;font-size:11px;color:var(--text3);}
+.inp-foot b{color:var(--ax);font-weight:500;}
+.persona-tag{padding:2px 8px;background:var(--axbg);border:1px solid var(--border2);border-radius:20px;font-size:10px;color:var(--ax);}
+
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.back{padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:var(--font);font-size:12px;cursor:pointer;transition:all .12s;}
+.back:hover{background:var(--bg4);color:var(--text);}
+.panel-title{font-size:16px;font-weight:700;letter-spacing:-.3px;}
+.cfg-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:18px;max-width:600px;width:100%;}
+.cfg-body::-webkit-scrollbar{width:3px;}
+.cfg-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.cfg-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
+.cfg-head{padding:12px 16px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.prov-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+.prov{padding:14px;background:var(--bg2);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:7px;}
+.prov:hover{background:var(--bg3);}
+.prov.on{background:var(--axbg);}
+.prov-top{display:flex;align-items:center;gap:8px;}
+.prov-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.prov-nm{font-size:13px;font-weight:600;}
+.prov-sub{font-size:11px;color:var(--text3);}
+.prov-tag{display:flex;align-items:center;gap:4px;font-size:10px;}
+.dot{width:5px;height:5px;border-radius:50%;}
+.dot.g{background:var(--teal);}
+.dot.d{background:var(--text3);}
+.mdl-list{padding:8px;}
+.mdl{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .12s;}
+.mdl:hover{background:var(--bg3);}
+.mdl.on{background:var(--axbg);}
+.mdl-radio{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border3);transition:all .12s;flex-shrink:0;}
+.mdl.on .mdl-radio{background:var(--ax);border-color:var(--ax);}
+.mdl-info{flex:1;}
+.mdl-nm{font-size:13px;font-weight:500;}
+.mdl-ds{font-size:11px;color:var(--text3);}
+.mdl-ctx{font-size:11px;font-family:var(--mono);color:var(--ax);flex-shrink:0;}
+.param-r{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.param-l{flex:1;}
+.param-n{font-size:13px;font-weight:500;}
+.param-h{font-size:11px;color:var(--text3);margin-top:1px;}
+.param-c{display:flex;align-items:center;gap:10px;}
+.sl{-webkit-appearance:none;width:130px;height:3px;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ax);cursor:pointer;transition:transform .1s;}
+.sl::-webkit-slider-thumb:hover{transform:scale(1.2);}
+.pv{font-size:12px;font-family:var(--mono);color:var(--ax);min-width:32px;text-align:right;}
+.ollama-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+.text-inp{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s;}
+.text-inp:focus{border-color:var(--ax);}
+.save-btn{padding:7px 14px;background:var(--ax);border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.save-btn:hover{opacity:.85;}
+
+.pg{padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.pc{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 10px;cursor:pointer;transition:all .12s;text-align:center;}
+.pc:hover{border-color:var(--border2);}
+.pc.on{border-color:var(--ax);background:var(--axbg);}
+.pc-em{font-size:20px;margin-bottom:5px;}
+.pc-nm{font-size:12px;font-weight:600;color:var(--text);}
+.pc-ds{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.prompt-ed{padding:0 16px 16px;}
+.prompt-ta{width:100%;min-height:110px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.7;resize:vertical;outline:none;transition:border-color .15s;}
+.prompt-ta:focus{border-color:var(--ax);}
+.pe-foot{display:flex;align-items:center;gap:9px;margin-top:9px;}
+.apply-btn{padding:9px 18px;background:var(--ax);border:none;border-radius:9px;color:#fff;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .12s;}
+.apply-btn:hover{opacity:.85;}
+.clear-btn{padding:9px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text2);font-family:var(--font);font-size:13px;cursor:pointer;transition:all .12s;}
+.clear-btn:hover{background:var(--bg4);color:var(--text);}
+.ps-msg{font-size:11px;color:var(--teal);}
+
+/* API Key section */
+.apikey-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+
+.toast{position:fixed;bottom:16px;right:16px;padding:11px 15px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;font-size:13px;max-width:300px;z-index:999;transform:translateY(16px);opacity:0;transition:all .22s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-t{font-weight:600;margin-bottom:2px;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div class="sb-head">
+      <div class="logo-row">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="logo-text">Axiom<span> AI</span></div>
+      </div>
+      <button class="new-btn" onclick="newChat()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New conversation
+      </button>
+    </div>
+    <div class="sb-section" id="conv-list"></div>
+    <div class="sb-foot">
+      <button class="ft-btn" id="btn-chat" onclick="showPanel('chat')">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+      <button class="ft-btn" id="btn-model" onclick="showPanel('model')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Models
+      </button>
+      <button class="ft-btn" id="btn-persona" onclick="showPanel('persona')">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Persona
+      </button>
+      <button class="ft-btn" onclick="exportChat()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- CHAT PANEL -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-head">
+        <div class="chat-head-title" id="chat-title">New conversation</div>
+        <div class="tok-badge" id="tok-badge"></div>
+        <div class="model-pill" onclick="showPanel('model')">
+          <div class="model-dot"></div>
+          <span id="model-pill-text">claude-sonnet-4</span>
+        </div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="input-wrap">
+        <div class="input-box">
+          <textarea id="inp" placeholder="Message Axiom AI…" rows="1" onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+          <button class="send" id="send-btn" onclick="send()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="inp-foot">
+          <span>Provider: <b id="fp">Anthropic</b></span>
+          <span>·</span>
+          <span id="fm" style="color:var(--text2)">claude-sonnet-4-20250514</span>
+          <span id="persona-tag-wrap"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODEL PANEL -->
+    <div class="panel" id="panel-model">
+      <div class="panel-head">
+        <button class="back" onclick="showPanel('chat')">← Back to chat</button>
+        <div class="panel-title">Model Configuration</div>
+      </div>
+      <div class="cfg-body">
+        <div class="cfg-card">
+          <div class="cfg-head">Provider</div>
+          <div class="prov-row">
+            <div class="prov on" id="prov-anthropic" onclick="setProv('anthropic')">
+              <div class="prov-top">
+                <div class="prov-ic" style="background:#1a1028">🌐</div>
+                <div><div class="prov-nm">Anthropic</div><div class="prov-sub">Claude 3.5 / 3.7 / 4</div></div>
+              </div>
+              <div class="prov-tag"><div class="dot g"></div><span style="color:var(--teal);font-size:10px">API key required</span></div>
+            </div>
+            <div class="prov" id="prov-ollama" onclick="setProv('ollama')">
+              <div class="prov-top">
+                <div class="prov-ic" style="background:#1a1a10">🦙</div>
+                <div><div class="prov-nm">Ollama</div><div class="prov-sub">Local open-source models</div></div>
+              </div>
+              <div class="prov-tag"><div class="dot d"></div><span style="color:var(--text3);font-size:10px">Local endpoint required</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cfg-card" id="apikey-card">
+          <div class="cfg-head">Anthropic API Key</div>
+          <div class="apikey-row">
+            <input class="text-inp" type="password" id="api-key-inp" placeholder="sk-ant-api03-...">
+            <button class="save-btn" onclick="saveApiKey()">Save</button>
+          </div>
+          <div style="padding:0 16px 12px;font-size:11px;color:var(--text3)">Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--ax)">console.anthropic.com</a>. Stored locally in your browser only.</div>
+        </div>
+
+        <div class="cfg-card">
+          <div class="cfg-head">Model</div>
+          <div class="mdl-list" id="mdl-list"></div>
+        </div>
+
+        <div class="cfg-card" id="ollama-cfg" style="display:none">
+          <div class="cfg-head">Ollama Endpoint</div>
+          <div class="ollama-row">
+            <input class="text-inp" id="ollama-ep" placeholder="http://localhost:11434" value="http://localhost:11434">
+            <button class="save-btn" onclick="saveOllama()">Save</button>
+          </div>
+        </div>
+
+        <div class="cfg-card">
+          <div class="cfg-head">Parameters</div>
+          <div class="param-r">
+            <div class="param-l"><div class="param-n">Temperature</div><div class="param-h">0 = focused · 1 = creative</div></div>
+            <div class="param-c"><input type="range" class="sl" min="0" max="100" value="70" oninput="upParam('temp',this.value/100)"><span class="pv" id="pv-temp">0.70</span></div>
+          </div>
+          <div class="param-r">
+            <div class="param-l"><div class="param-n">Max Tokens</div><div class="param-h">Maximum response length</div></div>
+            <div class="param-c"><input type="range" class="sl" min="256" max="8192" value="2048" step="256" oninput="upParam('maxTok',parseInt(this.value))"><span class="pv" id="pv-tok">2048</span></div>
+          </div>
+          <div class="param-r">
+            <div class="param-l"><div class="param-n">Top P</div><div class="param-h">Nucleus sampling probability</div></div>
+            <div class="param-c"><input type="range" class="sl" min="1" max="100" value="100" oninput="upParam('topP',this.value/100)"><span class="pv" id="pv-top">1.00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERSONA PANEL -->
+    <div class="panel" id="panel-persona">
+      <div class="panel-head">
+        <button class="back" onclick="showPanel('chat')">← Back to chat</button>
+        <div class="panel-title">System Prompt & Persona</div>
+      </div>
+      <div class="cfg-body">
+        <div class="cfg-card">
+          <div class="cfg-head">Quick Personas</div>
+          <div class="pg" id="pg"></div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-head">Custom System Prompt</div>
+          <div class="prompt-ed">
+            <textarea class="prompt-ta" id="spi" placeholder="You are a helpful assistant…"></textarea>
+            <div class="pe-foot">
+              <button class="apply-btn" onclick="applyPersona()">Apply</button>
+              <button class="clear-btn" onclick="clearPersona()">Clear</button>
+              <span class="ps-msg" id="ps-msg"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-t" id="toast-t"></div><div id="toast-m"></div></div>
+
+<script>
+const S = {
+  convs:[],active:null,
+  prov:'anthropic',
+  model:'claude-sonnet-4-20250514',
+  params:{temp:.7,maxTok:2048,topP:1},
+  sysPrompt:'',
+  ollamaEp:'http://localhost:11434',
+  apiKey:'',
+  totalTok:0,
+  streaming:false
+};
+
+const MODELS = {
+  anthropic:[
+    {id:'claude-sonnet-4-20250514',nm:'Claude Sonnet 4',ds:'Balanced · fast · capable',ctx:'200K'},
+    {id:'claude-opus-4-5',nm:'Claude Opus 4.5',ds:'Most capable & creative',ctx:'200K'},
+    {id:'claude-haiku-4-5-20251001',nm:'Claude Haiku 4.5',ds:'Fastest & efficient',ctx:'200K'},
+  ],
+  ollama:[
+    {id:'llama3.2:latest',nm:'Llama 3.2',ds:'Meta open-source',ctx:'128K'},
+    {id:'mistral:latest',nm:'Mistral 7B',ds:'Fast instruct',ctx:'32K'},
+    {id:'phi3:latest',nm:'Phi-3 Mini',ds:'Lightweight local',ctx:'128K'},
+    {id:'codellama:latest',nm:'Code Llama',ds:'Code specialist',ctx:'100K'},
+  ]
+};
+
+const PERSONAS=[
+  {em:'💻',nm:'Code Expert',ds:'Clean, commented code',p:'You are an expert software engineer. Produce clean, well-commented code. Always explain your choices, suggest best practices, and flag potential issues.'},
+  {em:'✍️',nm:'Creative Writer',ds:'Vivid storytelling',p:'You are a skilled creative writer. Craft compelling narratives, suggest vivid language, and help develop unique voice and style.'},
+  {em:'🔬',nm:'Researcher',ds:'Evidence-based analysis',p:'You are a rigorous scientific researcher. Provide evidence-based analysis, cite your reasoning clearly, and always acknowledge uncertainty.'},
+  {em:'🧮',nm:'Math Tutor',ds:'Step-by-step solutions',p:'You are a patient mathematics tutor. Break down every problem step-by-step. Build intuition, not just answers.'},
+  {em:'🤝',nm:'Socratic',ds:'Question-led discovery',p:'You are a Socratic teacher. Guide users to insights through thoughtful questions rather than direct answers. Foster critical thinking.'},
+  {em:'🌐',nm:'Default',ds:'Helpful & balanced',p:''},
+];
+
+const STORE='axiom_v2';
+function persist(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+function hydrate(){try{const d=localStorage.getItem(STORE);if(d)Object.assign(S,JSON.parse(d));}catch(e){}}
+
+function newChat(){
+  const id='c'+Date.now();
+  S.convs.unshift({id,nm:'New conversation',msgs:[],ts:Date.now()});
+  S.active=id;
+  persist();renderSidebar();renderMsgs();showPanel('chat');
+}
+function selConv(id){S.active=id;persist();renderSidebar();renderMsgs();}
+function delConv(id,e){
+  e.stopPropagation();
+  S.convs=S.convs.filter(c=>c.id!==id);
+  if(S.active===id)S.active=S.convs.length?S.convs[0].id:null;
+  persist();renderSidebar();renderMsgs();
+}
+function getConv(){return S.convs.find(c=>c.id===S.active);}
+
+function renderSidebar(){
+  const el=document.getElementById('conv-list');
+  if(!S.convs.length){el.innerHTML='<div style="padding:10px 6px;font-size:12px;color:var(--text3)">No conversations yet</div>';return;}
+  el.innerHTML='<div class="sec-lbl">Recent</div>'+S.convs.map(c=>`
+    <div class="conv${c.id===S.active?' on':''}" onclick="selConv('${c.id}')">
+      <span class="conv-ic">💬</span>
+      <span class="conv-nm">${esc(c.nm)}</span>
+      <span class="conv-x" onclick="delConv('${c.id}',event)">✕</span>
+    </div>`).join('');
+}
+
+function renderMsgs(){
+  const c=getConv();
+  const el=document.getElementById('msgs');
+  document.getElementById('chat-title').textContent=c?c.nm:'New conversation';
+  if(!c||!c.msgs.length){
+    el.innerHTML=`<div class="empty">
+      <div class="empty-logo"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ax)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div class="empty-h">Axiom<span> AI</span></div>
+      <div class="empty-p">Streaming conversations with Claude and local Ollama models. Markdown, code highlighting, token tracking.</div>
+      <div class="chips">
+        <div class="chip" onclick="quick(this)">Explain transformer attention</div>
+        <div class="chip" onclick="quick(this)">Write a Rust HTTP server</div>
+        <div class="chip" onclick="quick(this)">Refactor this Python code</div>
+        <div class="chip" onclick="quick(this)">Compare REST vs GraphQL</div>
+      </div>
+    </div>`;
+    updTok();return;
+  }
+  el.innerHTML=c.msgs.map(m=>{
+    const t=new Date(m.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const body=m.role==='assistant'?md(m.content):esc(m.content);
+    return`<div class="mg ${m.role}">
+      <div class="bubble"><div class="mc">${body}</div></div>
+      <div class="bub-meta">${t}${m.tok?` · <span style="color:var(--ax);font-family:var(--mono)">${m.tok}</span> tok`:''}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+  updTok();
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function md(raw){
+  if(!raw)return'';
+  let out=raw.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>{
+    const h=syntaxHL(esc(code.trim()),lang);
+    return`<div class="cb"><div class="cb-head"><span class="cb-lang">${lang||'code'}</span><button class="cb-copy" onclick="cpCode(this)">Copy</button></div><div class="cb-body">${h}</div></div>`;
+  });
+  out=out.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  out=out.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  out=out.replace(/\*([^*\n]+)\*/g,'<em>$1</em>');
+  out=out.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  out=out.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  out=out.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  out=out.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  out=out.replace(/^---$/gm,'<hr>');
+  out=out.replace(/^[\-\*] (.+)$/gm,'<li>$1</li>');
+  out=out.replace(/(<li>[\s\S]*?<\/li>\n?)+/g,'<ul>$&</ul>');
+  out=out.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  out=out.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  out=out.replace(/\n\n+/g,'<br><br>');
+  out=out.replace(/\n/g,'<br>');
+  return out;
+}
+
+function syntaxHL(code,lang){
+  if(!lang)return code;
+  const l=lang.toLowerCase();
+  if(['js','javascript','ts','typescript'].includes(l)){
+    return code
+      .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|from|async|await|new|typeof|instanceof|try|catch|throw|switch|case|break|default|of|in)\b/g,'<span class="kw">$1</span>')
+      .replace(/\b([A-Z][a-zA-Z0-9]*)\b/g,'<span class="tp">$1</span>')
+      .replace(/\b([a-z_][a-zA-Z0-9_]*)\s*(?=\()/g,'<span class="fn">$1</span>')
+      .replace(/(["'`])((?:\\.|(?!\1)[^\\])*)\1/g,'<span class="str">$1$2$1</span>')
+      .replace(/\/\/.*/g,'<span class="cm">$&</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  }
+  if(['py','python'].includes(l)){
+    return code
+      .replace(/\b(def|class|import|from|return|if|elif|else|for|while|in|not|and|or|pass|raise|try|except|finally|with|as|lambda|yield|True|False|None)\b/g,'<span class="kw">$1</span>')
+      .replace(/\b([A-Z][a-zA-Z0-9]*)\b/g,'<span class="tp">$1</span>')
+      .replace(/\b([a-z_][a-zA-Z0-9_]*)\s*(?=\()/g,'<span class="fn">$1</span>')
+      .replace(/("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,'<span class="str">$&</span>')
+      .replace(/#.*/g,'<span class="cm">$&</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  }
+  if(['rust','rs'].includes(l)){
+    return code
+      .replace(/\b(fn|let|mut|pub|use|mod|struct|enum|impl|trait|for|while|if|else|return|match|in|as|move|async|await|dyn|where|type|const|static|self|Self|super)\b/g,'<span class="kw">$1</span>')
+      .replace(/\b([A-Z][a-zA-Z0-9]*)\b/g,'<span class="tp">$1</span>')
+      .replace(/\b([a-z_][a-zA-Z0-9_]*)\s*(?=\()/g,'<span class="fn">$1</span>')
+      .replace(/"(?:[^"\\]|\\.)*"/g,'<span class="str">$&</span>')
+      .replace(/\/\/.*/g,'<span class="cm">$&</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  }
+  if(['go'].includes(l)){
+    return code
+      .replace(/\b(func|var|const|type|struct|interface|import|package|return|if|else|for|range|switch|case|go|defer|chan|map|make|new|nil|true|false)\b/g,'<span class="kw">$1</span>')
+      .replace(/\b([A-Z][a-zA-Z0-9]*)\b/g,'<span class="tp">$1</span>')
+      .replace(/\b([a-z_][a-zA-Z0-9_]*)\s*(?=\()/g,'<span class="fn">$1</span>')
+      .replace(/"(?:[^"\\]|\\.)*"/g,'<span class="str">$&</span>')
+      .replace(/\/\/.*/g,'<span class="cm">$&</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  }
+  if(['bash','sh','shell'].includes(l)){
+    return code
+      .replace(/\b(if|then|else|fi|for|while|do|done|case|esac|function|return|export|echo|cd|ls|grep|awk|sed|curl|docker|git)\b/g,'<span class="kw">$1</span>')
+      .replace(/(["'])((?:\\.|(?!\1)[^\\])*)\1/g,'<span class="str">$1$2$1</span>')
+      .replace(/#.*/g,'<span class="cm">$&</span>')
+      .replace(/\$\w+/g,'<span class="tp">$&</span>');
+  }
+  return code;
+}
+
+function cpCode(btn){
+  const code=btn.closest('.cb').querySelector('.cb-body').innerText;
+  navigator.clipboard.writeText(code).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});
+}
+
+async function send(){
+  if(S.streaming)return;
+  const inp=document.getElementById('inp');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  if(!S.active)newChat();
+  const conv=getConv();
+  if(!conv)return;
+  inp.value='';inp.style.height='auto';
+  const um={role:'user',content:txt,ts:Date.now()};
+  conv.msgs.push(um);
+  if(conv.msgs.length===1){conv.nm=txt.slice(0,42)+(txt.length>42?'…':'');document.getElementById('chat-title').textContent=conv.nm;renderSidebar();}
+  appendBubble('user',esc(txt));
+  if(S.prov==='anthropic') await streamClaude(conv);
+  else await streamOllama(conv,txt);
+}
+
+function appendBubble(role,html){
+  const el=document.getElementById('msgs');
+  const emp=el.querySelector('.empty');
+  if(emp)emp.remove();
+  const d=document.createElement('div');
+  d.className=`mg ${role}`;
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  d.innerHTML=`<div class="bubble"><div class="mc">${html}</div></div><div class="bub-meta">${t}</div>`;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  return d;
+}
+
+async function streamClaude(conv){
+  S.streaming=true;
+  document.getElementById('send-btn').disabled=true;
+  if(!S.apiKey){
+    toast('API key required','Add your Anthropic API key in Model Configuration','error');
+    conv.msgs.pop();
+    S.streaming=false;
+    document.getElementById('send-btn').disabled=false;
+    renderMsgs();
+    return;
+  }
+  const area=document.getElementById('msgs');
+  const wrap=document.createElement('div');
+  wrap.className='mg assistant';
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  wrap.innerHTML=`<div class="bubble"><div class="mc"><span class="cursor"></span></div></div><div class="bub-meta">${t}</div>`;
+  area.appendChild(wrap);
+  area.scrollTop=area.scrollHeight;
+  const mc=wrap.querySelector('.mc');
+  let full='';
+  const body={
+    model:S.model,
+    max_tokens:S.params.maxTok,
+    messages:conv.msgs.map(m=>({role:m.role,content:m.content})),
+    stream:true
+  };
+  if(S.sysPrompt)body.system=S.sysPrompt;
+  if(S.params.temp!==undefined)body.temperature=S.params.temp;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':S.apiKey},
+      body:JSON.stringify(body)
+    });
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`Error ${r.status}`);}
+    const reader=r.body.getReader();
+    const dec=new TextDecoder();
+    let iTok=0,oTok=0;
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      const lines=dec.decode(value,{stream:true}).split('\n');
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        const raw=line.slice(6).trim();
+        if(raw==='[DONE]')continue;
+        try{
+          const ev=JSON.parse(raw);
+          if(ev.type==='content_block_delta'&&ev.delta?.type==='text_delta'){
+            full+=ev.delta.text;
+            mc.innerHTML=md(full)+'<span class="cursor"></span>';
+            area.scrollTop=area.scrollHeight;
+          }
+          if(ev.type==='message_start'&&ev.message?.usage)iTok=ev.message.usage.input_tokens||0;
+          if(ev.type==='message_delta'&&ev.usage)oTok=ev.usage.output_tokens||0;
+        }catch(e){}
+      }
+    }
+    const totalTok=iTok+oTok;
+    mc.innerHTML=md(full);
+    wrap.querySelector('.bub-meta').innerHTML=t+(totalTok?` · <span style="color:var(--ax);font-family:var(--mono)">${totalTok}</span> tok`:'');
+    conv.msgs.push({role:'assistant',content:full,ts:Date.now(),tok:totalTok});
+    S.totalTok+=totalTok;
+    updTok();
+  }catch(err){
+    wrap.remove();
+    toast('Error',friendly(err.message),'error');
+    conv.msgs.pop();
+  }
+  S.streaming=false;
+  document.getElementById('send-btn').disabled=false;
+  persist();
+}
+
+async function streamOllama(conv,txt){
+  S.streaming=true;
+  document.getElementById('send-btn').disabled=true;
+  const area=document.getElementById('msgs');
+  const wrap=document.createElement('div');
+  wrap.className='mg assistant';
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  wrap.innerHTML=`<div class="bubble"><div class="mc"><span class="cursor"></span></div></div><div class="bub-meta">${t}</div>`;
+  area.appendChild(wrap);
+  area.scrollTop=area.scrollHeight;
+  const mc=wrap.querySelector('.mc');
+  let full='';
+  const msgs=conv.msgs.map(m=>({role:m.role,content:m.content}));
+  if(S.sysPrompt)msgs.unshift({role:'system',content:S.sysPrompt});
+  try{
+    const r=await fetch(`${S.ollamaEp}/api/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:S.model,messages:msgs,stream:true})
+    });
+    if(!r.ok)throw new Error(`Ollama error ${r.status}`);
+    const reader=r.body.getReader();
+    const dec=new TextDecoder();
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      const lines=dec.decode(value,{stream:true}).split('\n').filter(Boolean);
+      for(const line of lines){
+        try{
+          const ev=JSON.parse(line);
+          if(ev.message?.content){
+            full+=ev.message.content;
+            mc.innerHTML=md(full)+'<span class="cursor"></span>';
+            area.scrollTop=area.scrollHeight;
+          }
+        }catch(e){}
+      }
+    }
+    mc.innerHTML=md(full);
+    conv.msgs.push({role:'assistant',content:full,ts:Date.now()});
+  }catch(err){
+    wrap.remove();
+    toast('Ollama error',`Could not reach ${S.ollamaEp}. Make sure Ollama is running and OLLAMA_ORIGINS is set.`,'error');
+    conv.msgs.pop();
+  }
+  S.streaming=false;
+  document.getElementById('send-btn').disabled=false;
+  persist();
+}
+
+function friendly(msg){
+  if(!msg)return'Something went wrong. Please try again.';
+  if(msg.includes('401')||msg.includes('auth')||msg.includes('key'))return'Invalid API key. Check your key in Model Configuration.';
+  if(msg.includes('429')||msg.includes('rate'))return'Rate limit hit. Wait a moment and try again.';
+  if(msg.includes('500')||msg.includes('server'))return'Service temporarily unavailable. Try again shortly.';
+  if(msg.includes('network')||msg.includes('fetch')||msg.includes('Failed'))return'Network issue. Check your connection and try again.';
+  if(msg.includes('context')||msg.includes('length'))return'Conversation too long. Start a new chat to continue.';
+  return msg;
+}
+
+function setProv(p){
+  S.prov=p;
+  document.querySelectorAll('.prov').forEach(el=>el.classList.remove('on'));
+  document.getElementById('prov-'+p)?.classList.add('on');
+  S.model=MODELS[p][0].id;
+  document.getElementById('ollama-cfg').style.display=p==='ollama'?'block':'none';
+  document.getElementById('apikey-card').style.display=p==='anthropic'?'block':'none';
+  renderMdlList();updateFooter();persist();
+}
+
+function renderMdlList(){
+  const ms=MODELS[S.prov]||[];
+  document.getElementById('mdl-list').innerHTML=ms.map(m=>`
+    <div class="mdl${m.id===S.model?' on':''}" onclick="selMdl('${m.id}')">
+      <div class="mdl-radio"></div>
+      <div class="mdl-info"><div class="mdl-nm">${m.nm}</div><div class="mdl-ds">${m.ds}</div></div>
+      <div class="mdl-ctx">${m.ctx}</div>
+    </div>`).join('');
+}
+function selMdl(id){S.model=id;renderMdlList();updateFooter();persist();}
+function upParam(k,v){
+  S.params[k]=v;
+  if(k==='temp')document.getElementById('pv-temp').textContent=parseFloat(v).toFixed(2);
+  if(k==='maxTok')document.getElementById('pv-tok').textContent=v;
+  if(k==='topP')document.getElementById('pv-top').textContent=parseFloat(v).toFixed(2);
+  persist();
+}
+function saveOllama(){S.ollamaEp=document.getElementById('ollama-ep').value;persist();toast('Saved','Ollama endpoint updated','ok');}
+function saveApiKey(){
+  const k=document.getElementById('api-key-inp').value.trim();
+  if(k){S.apiKey=k;persist();toast('Saved','API key stored locally','ok');}
+}
+function updateFooter(){
+  const p=S.prov==='anthropic'?'Anthropic':'Ollama';
+  const m=MODELS[S.prov]?.find(x=>x.id===S.model);
+  document.getElementById('fp').textContent=p;
+  document.getElementById('fm').textContent=S.model;
+  document.getElementById('model-pill-text').textContent=m?.nm||S.model;
+}
+
+function renderPersonaGrid(){
+  document.getElementById('pg').innerHTML=PERSONAS.map((p,i)=>`
+    <div class="pc${S.sysPrompt===p.p?' on':''}" onclick="pickPersona(${i})">
+      <div class="pc-em">${p.em}</div>
+      <div class="pc-nm">${p.nm}</div>
+      <div class="pc-ds">${p.ds}</div>
+    </div>`).join('');
+}
+function pickPersona(i){
+  const p=PERSONAS[i];
+  document.getElementById('spi').value=p.p;
+  S.sysPrompt=p.p;
+  renderPersonaGrid();persist();
+  document.getElementById('ps-msg').textContent=p.nm+' applied';
+  updatePersonaTag();
+}
+function applyPersona(){
+  S.sysPrompt=document.getElementById('spi').value;
+  renderPersonaGrid();persist();
+  document.getElementById('ps-msg').textContent='Custom persona applied ✓';
+  updatePersonaTag();
+}
+function clearPersona(){
+  S.sysPrompt='';
+  document.getElementById('spi').value='';
+  renderPersonaGrid();persist();
+  document.getElementById('ps-msg').textContent='Cleared';
+  updatePersonaTag();
+}
+function updatePersonaTag(){
+  const wrap=document.getElementById('persona-tag-wrap');
+  if(S.sysPrompt){const p=PERSONAS.find(x=>x.p===S.sysPrompt);wrap.innerHTML=`<span class="persona-tag">🎭 ${p?p.nm:'Custom'}</span>`;}
+  else wrap.innerHTML='';
+}
+
+function exportChat(){
+  const c=getConv();
+  if(!c||!c.msgs.length){toast('Nothing to export','Start a conversation first','error');return;}
+  let txt=`AXIOM AI — ${c.nm}\n${'─'.repeat(60)}\nExported: ${new Date().toLocaleString()}\n\n`;
+  c.msgs.forEach(m=>{
+    const role=m.role==='user'?'You':'Axiom AI';
+    txt+=`[${role}]  ${new Date(m.ts).toLocaleString()}\n${m.content}\n\n`;
+  });
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`axiom-${Date.now()}.txt`;
+  a.click();
+  toast('Exported','Conversation saved as .txt','ok');
+}
+
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.ft-btn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('btn-'+id);
+  if(btn)btn.classList.add('on');
+  if(id==='model'){
+    renderMdlList();
+    document.getElementById('ollama-ep').value=S.ollamaEp;
+    if(S.apiKey)document.getElementById('api-key-inp').value=S.apiKey;
+    document.getElementById('ollama-cfg').style.display=S.prov==='ollama'?'block':'none';
+    document.getElementById('apikey-card').style.display=S.prov==='anthropic'?'block':'none';
+  }
+  if(id==='persona'){renderPersonaGrid();document.getElementById('spi').value=S.sysPrompt;}
+}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
+function quick(el){document.getElementById('inp').value=el.textContent;send();}
+function updTok(){
+  const c=getConv();
+  const tot=c?c.msgs.reduce((s,m)=>s+(m.tok||0),0):0;
+  document.getElementById('tok-badge').textContent=tot?tot.toLocaleString()+' tokens':'';
+}
+function toast(title,msg,type){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-t').textContent=title;
+  document.getElementById('toast-m').textContent=msg;
+  const col=type==='error'?'var(--red)':type==='ok'?'var(--teal)':'var(--amber)';
+  t.style.borderColor=col;
+  document.getElementById('toast-t').style.color=col;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3800);
+}
+
+function init(){
+  hydrate();
+  if(!S.convs.length)newChat();
+  else{renderSidebar();renderMsgs();}
+  updateFooter();
+  updatePersonaTag();
+  showPanel('chat');
+  document.getElementById('btn-chat').classList.add('on');
+  const sl=document.querySelectorAll('.sl');
+  sl[0].value=S.params.temp*100;document.getElementById('pv-temp').textContent=S.params.temp.toFixed(2);
+  sl[1].value=S.params.maxTok;document.getElementById('pv-tok').textContent=S.params.maxTok;
+  sl[2].value=S.params.topP*100;document.getElementById('pv-top').textContent=S.params.topP.toFixed(2);
+  if(S.apiKey)document.getElementById('api-key-inp').value=S.apiKey;
+}
+init();
+</script>
+</body>
+</html>
